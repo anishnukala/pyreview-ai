@@ -1,0 +1,11 @@
+Test Case,Gemini API Score (1–5),ChatGPT (Paid) Score (1–5),Claude (Free) Score (1–5),Notes
+1,4,5,4,Gemini detected addition issue; ChatGPT detailed explanation and improved code.
+2,4,5,4,Loop off-by-one noted by all; ChatGPT provided extra guidance.
+3,4,5,4,Missing else branch flagged by all; ChatGPT suggested fixes clearly.
+4,4,5,4,Variable naming issues highlighted; ChatGPT gave beginner-friendly tips.
+5,3,5,4,Divide-by-zero check recommended; Gemini less detailed.
+6,4,5,4,Repeated code noted; ChatGPT suggested refactor.
+7,4,5,4,Inefficient loop detected; ChatGPT suggested built-in sum.
+8,3,5,4,Indentation error noted; ChatGPT explained Python indentation rules.
+9,4,5,4,Global variables flagged; ChatGPT recommended local alternatives.
+10,3,5,4,Poor naming and missing docstring noted; ChatGPT improved naming and added docstring.

@@ -1,0 +1,230 @@
+\documentclass[12pt]{article}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{newtxtext,newtxmath}
+\usepackage{xcolor}
+\usepackage{ragged2e}
+
+\graphicspath{{docs/}}
+
+\setstretch{1.15}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.8em}
+\renewcommand{\arraystretch}{1.35}
+
+\hypersetup{
+    colorlinks=true,
+    urlcolor=blue,
+    linkcolor=black
+}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    frame=single,
+    breaklines=true,
+    showstringspaces=false,
+    columns=fullflexible,
+    keepspaces=true
+}
+
+\begin{document}
+
+% ---------------- Title Page ----------------
+\begin{titlepage}
+    \centering
+    \vspace*{1.4in}
+
+    {\LARGE\bfseries Final Applied AI Project Report\par}
+    \vspace{0.7in}
+
+    {\large Course: AI 2010\par}
+    \vspace{0.3in}
+
+    {\Large\bfseries Project Title: AI-Assisted Python Code Review for Beginners\par}
+    \vspace{0.8in}
+
+    \begin{flushleft}
+    \large
+    \textbf{Course:} AI 2010 -- Introduction to Applied AI\\[0.25in]
+    \textbf{Instructor:} Matthew Tancretti\\[0.25in]
+    \textbf{Prepared By:} Anish Reddy Nukala\\[0.25in]
+    \textbf{Prepared For:} AI 2010, Introduction to Applied AI\\[0.25in]
+    \textbf{Date:} May 10, 2026
+    \end{flushleft}
+
+    \vfill
+\end{titlepage}
+
+% ---------------- Introduction ----------------
+\section*{Introduction}
+
+This project explores the potential of Generative AI to assist beginner Python programmers in improving their coding skills by providing clear, structured, and actionable feedback. Many beginners write code that works but struggle with readability, logic, and understanding best practices. Traditional tools such as compilers and linters provide limited feedback that is often too technical for beginners, leaving a gap between simply writing code and truly understanding programming concepts. Generative AI offers the opportunity to bridge this gap by analyzing code, highlighting potential errors, suggesting improvements, and explaining concepts in language that beginners can understand. This project aims to demonstrate the effectiveness of AI in supporting self-directed learning and enhancing programming education.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{website-preview.png}
+\end{figure}
+
+% ---------------- Problem Definition ----------------
+\section*{Problem Definition}
+
+Beginner programmers frequently face challenges that go beyond syntax errors. Even when their code executes correctly, issues such as poor variable naming, inconsistent indentation, and inefficient logic can hinder comprehension and long-term learning. Existing feedback mechanisms, whether from instructors or automated tools, can be inconsistent, overly technical, or delayed, limiting their usefulness for beginners. Addressing this problem is crucial in the context of Computer Science education, as coding skills, code review capabilities, and adherence to best practices are fundamental for any software engineering career. By applying Generative AI, this project seeks to create a system that can provide immediate, clear, and educational feedback, helping novices learn and adopt good coding habits early in their learning journey.
+
+% ---------------- Project Objectives ----------------
+\section*{Project Objectives}
+
+The primary objective of this project is to build a web-based application that leverages Generative AI to analyze Python code and provide beginner-friendly feedback. The system focuses on multiple aspects of code quality, including understanding the functionality of the code, identifying potential logical and syntactic errors, enhancing readability, and offering improved versions of the submitted code. By guiding users with structured feedback, the project aims to facilitate better comprehension of programming concepts and promote good coding practices. Another goal is to evaluate the effectiveness of this AI-driven feedback by comparing results from different AI models, thereby providing insights into how AI can supplement traditional learning methods.
+
+% ---------------- Methodology ----------------
+\section*{Methodology}
+
+The project utilizes a combination of backend and frontend technologies along with AI integration. The backend is implemented in Python using the Flask framework, which handles server operations, user input processing, and API calls to the AI model. The frontend is developed using HTML and CSS to provide a user-friendly interface where users can paste their Python code and view feedback. Google Gemini's API serves as the core generative AI component, producing structured, beginner-friendly code reviews. The prompts used in the AI calls are carefully engineered to ensure that the feedback covers key areas such as code explanation, error detection, readability improvements, and suggested revisions. Evaluation involves testing the system with ten different beginner-level Python code snippets, scoring the AI-generated feedback based on clarity, accuracy, and helpfulness, and comparing the performance of paid and open-source AI models.
+
+% ---------------- Implementation ----------------
+\section*{Implementation}
+
+The web application allows users to input Python code through a text editor interface. Once submitted, the code is sent to the backend, where it is processed and passed to the AI model using a structured prompt that instructs the AI to provide beginner-friendly feedback. The AI's response is then formatted using Markdown to create a clear, readable display, which includes sections describing what the code does, potential issues, readability improvements, and an improved version of the code if necessary. Key technologies employed include Python with Flask for backend logic, HTML and CSS for the frontend interface, Google Gemini API for AI feedback generation, and prompt engineering techniques to guide the AI's output.
+
+\lstinputlisting[caption={Flask application implementation}]{app.py}
+
+% ---------------- Demonstration ----------------
+\section*{Demonstration}
+
+The tool enables users to submit Python code for analysis and receive detailed feedback that highlights logic issues, readability concerns, and possible improvements. The system provides explanations in language that beginners can easily understand, helping them identify mistakes such as division by zero, type errors, or inefficient loops, while suggesting clearer variable names and code restructuring. Visual examples of the interface demonstrate how the AI processes the input and presents the results, allowing users to learn interactively and iteratively refine their code.
+
+% ---------------- Test Cases ----------------
+\section*{Test Cases}
+
+To evaluate the AI feedback system, ten Python code snippets were prepared representing common beginner errors and typical coding patterns. The snippets include examples of loops, conditionals, function definitions, and simple calculations with intentional mistakes. The AI system generated feedback for each snippet, which was scored manually for clarity, accuracy, and helpfulness. Below are the test cases used:
+
+\textbf{Test Case 1: Simple addition function with incorrect return value.}
+\begin{lstlisting}
+def add_numbers(a, b):
+    result = a + b + 1
+    return result
+\end{lstlisting}
+
+\textbf{Test Case 2: Loop with off-by-one error.}
+\begin{lstlisting}
+for i in range(1, 5):
+    print(i)
+\end{lstlisting}
+
+\textbf{Test Case 3: Conditional statement missing else branch.}
+\begin{lstlisting}
+x = 10
+if x > 5:
+    print('Greater than 5')
+\end{lstlisting}
+
+\textbf{Test Case 4: Variable naming not following conventions.}
+\begin{lstlisting}
+myVar = 10
+MYvar = 20
+print(myVar + MYvar)
+\end{lstlisting}
+
+\textbf{Test Case 5: Function missing parameter check.}
+\begin{lstlisting}
+def divide(a, b):
+    return a / b
+\end{lstlisting}
+
+\textbf{Test Case 6: Redundant code with repeated print statements.}
+\begin{lstlisting}
+print('Hello')
+print('Hello')
+\end{lstlisting}
+
+\textbf{Test Case 7: Inefficient loop operation.}
+\begin{lstlisting}
+numbers = [1,2,3,4]
+sum = 0
+for n in numbers:
+    sum += n
+\end{lstlisting}
+
+\textbf{Test Case 8: Incorrect indentation causing syntax error.}
+\begin{lstlisting}
+if True:
+print('Indented incorrectly')
+\end{lstlisting}
+
+\textbf{Test Case 9: Use of global variables unnecessarily.}
+\begin{lstlisting}
+global_counter = 0
+def increment():
+    global global_counter
+    global_counter += 1
+\end{lstlisting}
+
+\textbf{Test Case 10: Function with missing documentation and unclear naming.}
+\begin{lstlisting}
+def func(a,b):
+    return a*b
+\end{lstlisting}
+
+Each test case was submitted to the AI system, and the generated feedback included explanations of errors, suggestions to improve readability, and beginner-friendly improved versions of the code. These test cases were carefully selected to cover common programming challenges for novices, such as variable naming, indentation, logic mistakes, and basic algorithm implementation. The collected feedback was then used to evaluate and compare the performance of different AI models, assessing clarity, accuracy, helpfulness, and overall quality. This approach allowed for systematic benchmarking of the AI system's ability to provide meaningful and educational guidance to beginner programmers, highlighting strengths and areas for improvement across models.
+
+% ---------------- Evaluation and Results ----------------
+\section*{Evaluation and Results}
+
+The AI-generated feedback for the test cases was evaluated across models including Gemini API, ChatGPT (paid), and Claude (free). Paid models generally provided more detailed and consistent explanations with clear code improvement suggestions. All models performed well at identifying basic logic errors and readability issues, but more complex logical mistakes were occasionally missed. Overall, the results validate the usefulness of AI for assisting beginner programmers while highlighting areas for future improvement.
+
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabularx}{\textwidth}{>{\bfseries}p{1.5cm} c c c c c c X}
+\toprule
+Model & Clarity & Accuracy & Completeness & Helpfulness & Code Quality & Overall Score & Reason \\
+\midrule
+Gemini (API) & 4 & 4 & 3 & 4 & 4 & 4 & Clear explanations and good suggestions, but sometimes misses deeper logic issues and can be slightly inconsistent. \\
+\midrule
+ChatGPT (Paid) & 5 & 5 & 5 & 5 & 5 & 5 & Very consistent, highly accurate, and provides detailed, beginner-friendly explanations with strong code improvements. \\
+\midrule
+Claude (Free) & 4 & 4 & 4 & 5 & 4 & 4 & Good clarity and readability, but less consistent in accuracy and may miss important details or give weaker improvements. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ---------------- Limitations ----------------
+\section*{Limitations}
+
+The system currently only supports short Python code snippets and cannot handle large projects or multi-file programs. It does not execute code, so runtime errors, exceptions, and performance issues cannot be verified. Its accuracy depends on the AI model, which may miss subtle logic errors or provide inconsistent suggestions. Internet access and API availability are required for the system to function. Additionally, the tool only supports Python and cannot process other programming languages. Feedback quality is prompt-dependent, meaning unclear or poorly written prompts may produce less helpful results. The user interface has limitations for long code snippets, which can be difficult to read or navigate, and the AI tends to focus on readability improvements rather than deeper algorithmic enhancements. Finally, there is no authentication or version control, so feedback history is not stored for future reference.
+
+% ---------------- Future Work ----------------
+\section*{Future Work}
+
+Future developments for the system may include support for multiple programming languages, integration of code execution and debugging capabilities, an enhanced user interface and user experience for smoother interaction, automated scoring of code quality, and more comprehensive benchmarking across different AI models to evaluate performance and feedback consistency.
+
+% ---------------- Conclusion ----------------
+\section*{Conclusion}
+
+This project demonstrates that Generative AI can substantially enhance the learning experience for beginner Python programmers by providing immediate, structured, and educational feedback. Unlike traditional tools or static compilers, which only indicate errors, this AI-based system explains code functionality, highlights potential logic issues, and suggests improvements in a beginner-friendly manner. By offering clear guidance on readability, variable naming, and code structure, the tool bridges the gap between merely writing code and fully understanding programming concepts. Learners can use the feedback to adopt better coding habits, reduce common mistakes, and gain confidence in their programming skills. Additionally, the project shows the potential of AI in educational settings, enabling scalable, personalized, and interactive learning experiences that can supplement classroom instruction, self-study, or coding bootcamps. Overall, this system demonstrates how generative AI can make programming more accessible, engaging, and effective for novices while fostering long-term development of essential software engineering skills.
+
+% ---------------- References ----------------
+\section*{References}
+
+\begin{itemize}
+    \item Google Gemini API Documentation: \url{https://ai.google.dev/docs}
+    \item OpenAI API Documentation: \url{https://platform.openai.com/docs}
+    \item Flask Documentation: \url{https://flask.palletsprojects.com/}
+    \item Real Python -- Code Quality Best Practices: \url{https://realpython.com}
+\end{itemize}
+
+% ---------------- Acknowledgments ----------------
+\section*{Acknowledgments}
+
+I would like to thank my instructor and peers for their guidance and support, which contributed to the successful implementation of this AI-assisted Python code review tool.
+
+\end{document}

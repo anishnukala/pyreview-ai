@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Assisted Python Code Review</title>
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #050509;
+            --panel: rgba(255, 255, 255, 0.035);
+            --panel-strong: rgba(255, 255, 255, 0.07);
+            --line: rgba(255, 255, 255, 0.08);
+            --text: rgba(255, 255, 255, 0.92);
+            --muted: rgba(255, 255, 255, 0.46);
+            --soft: rgba(255, 255, 255, 0.24);
+            --violet: #8b5cf6;
+            --fuchsia: #d946ef;
+            --indigo: #6366f1;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 30% 10%, rgba(139, 92, 246, 0.16), transparent 32rem),
+                radial-gradient(circle at 75% 85%, rgba(99, 102, 241, 0.14), transparent 34rem),
+                radial-gradient(circle at 64% 28%, rgba(217, 70, 239, 0.08), transparent 26rem),
+                var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        .landing-hero {
+            position: relative;
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 64px 18px;
+            background:
+                radial-gradient(circle at 30% 10%, rgba(139, 92, 246, 0.16), transparent 32rem),
+                radial-gradient(circle at 75% 85%, rgba(99, 102, 241, 0.14), transparent 34rem),
+                radial-gradient(circle at 64% 28%, rgba(217, 70, 239, 0.08), transparent 26rem),
+                var(--bg);
+        }
+
+        .landing-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: linear-gradient(to bottom, transparent, black 20%, black 78%, transparent);
+        }
+
+        .landing-hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(to top, var(--bg), transparent 32%, rgba(5, 5, 9, 0.82));
+        }
+
+        .shape-field {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+        }
+
+        .elegant-shape {
+            position: absolute;
+            width: var(--shape-width);
+            height: var(--shape-height);
+            border-radius: 999px;
+            transform: rotate(var(--shape-rotate));
+            background: linear-gradient(90deg, var(--shape-color), transparent);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(2px);
+            animation: shape-in 1.2s ease both, shape-float 12s ease-in-out infinite;
+            animation-delay: var(--shape-delay), calc(var(--shape-delay) + 1.2s);
+        }
+
+        .elegant-shape::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2), transparent 70%);
+        }
+
+        .shape-one {
+            --shape-width: 600px;
+            --shape-height: 140px;
+            --shape-rotate: 12deg;
+            --shape-color: rgba(99, 102, 241, 0.15);
+            --shape-delay: 0.15s;
+            left: -8%;
+            top: 18%;
+        }
+
+        .shape-two {
+            --shape-width: 500px;
+            --shape-height: 120px;
+            --shape-rotate: -15deg;
+            --shape-color: rgba(244, 63, 94, 0.15);
+            --shape-delay: 0.3s;
+            right: -4%;
+            top: 72%;
+        }
+
+        .shape-three {
+            --shape-width: 300px;
+            --shape-height: 80px;
+            --shape-rotate: -8deg;
+            --shape-color: rgba(139, 92, 246, 0.15);
+            --shape-delay: 0.25s;
+            left: 10%;
+            bottom: 9%;
+        }
+
+        .shape-four {
+            --shape-width: 210px;
+            --shape-height: 60px;
+            --shape-rotate: 20deg;
+            --shape-color: rgba(245, 158, 11, 0.15);
+            --shape-delay: 0.42s;
+            right: 18%;
+            top: 12%;
+        }
+
+        .shape-five {
+            --shape-width: 150px;
+            --shape-height: 40px;
+            --shape-rotate: -25deg;
+            --shape-color: rgba(6, 182, 212, 0.15);
+            --shape-delay: 0.55s;
+            left: 24%;
+            top: 8%;
+        }
+
+        .landing-content {
+            position: relative;
+            z-index: 2;
+            width: min(100%, 920px);
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 42px;
+            padding: 7px 13px;
+            border-radius: 999px;
+            color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 14px;
+            letter-spacing: 0;
+            animation: fade-up 0.8s ease both;
+        }
+
+        .hero-badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(251, 113, 133, 0.84);
+            box-shadow: 0 0 18px rgba(251, 113, 133, 0.55);
+        }
+
+        .landing-title {
+            margin: 0;
+            font-size: clamp(46px, 9vw, 108px);
+            line-height: 0.98;
+            font-weight: 800;
+            letter-spacing: 0;
+            animation: fade-up 0.9s 0.18s ease both;
+        }
+
+        .title-top {
+            display: block;
+            color: transparent;
+            background: linear-gradient(to bottom, #fff, rgba(255, 255, 255, 0.8));
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .title-bottom {
+            display: block;
+            color: transparent;
+            background: linear-gradient(90deg, #a5b4fc, rgba(255, 255, 255, 0.92), #fda4af);
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+
+        .landing-copy {
+            max-width: 640px;
+            margin: 26px auto 0;
+            color: rgba(255, 255, 255, 0.42);
+            font-size: clamp(16px, 2.4vw, 20px);
+            line-height: 1.7;
+            font-weight: 300;
+            animation: fade-up 0.9s 0.34s ease both;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 34px;
+            animation: fade-up 0.9s 0.5s ease both;
+        }
+
+        .hero-scroll-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 46px;
+            padding: 0 18px;
+            border-radius: 999px;
+            color: #08080a;
+            background: rgba(255, 255, 255, 0.94);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 750;
+            box-shadow: 0 18px 60px rgba(255, 255, 255, 0.12);
+            transition: 170ms ease;
+        }
+
+        .hero-scroll-button:hover {
+            transform: translateY(-2px);
+            background: #fff;
+            box-shadow: 0 22px 70px rgba(129, 140, 248, 0.24);
+        }
+
+        .scroll-arrow {
+            font-size: 17px;
+            line-height: 1;
+        }
+
+        .lab-bg::before {
+            overflow: hidden;
+            max-width: 100vw;
+            max-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .page-shell {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 18px 28px;
+        }
+
+        .page-shell::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: linear-gradient(to bottom, transparent, black 20%, black 78%, transparent);
+        }
+
+        .main {
+            width: min(96vw, 1180px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 34px;
+        }
+
+        .brand-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 9px 13px;
+            font-size: 13px;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.28);
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            color: #0a0a0b;
+            background: linear-gradient(135deg, white, rgba(255,255,255,0.5));
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .hero {
+            text-align: center;
+            margin-top: 64px;
+            margin-bottom: 42px;
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(31px, 5vw, 48px);
+            line-height: 1.05;
+            font-weight: 650;
+            letter-spacing: 0;
+            background: linear-gradient(90deg, rgba(255,255,255,0.96), rgba(255,255,255,0.44));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero-line {
+            width: min(360px, 70vw);
+            height: 1px;
+            margin: 17px auto 16px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .chat-card {
+            width: 100%;
+            overflow: hidden;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));
+            border: 1px solid var(--line);
+            box-shadow: 0 28px 110px rgba(0, 0, 0, 0.44);
+            backdrop-filter: blur(24px);
+        }
+
+        .editor-wrap {
+            padding: 18px;
+        }
+
+        .editor-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #22c55e;
+            box-shadow: 0 0 18px rgba(34, 197, 94, 0.75);
+        }
+
+        .textarea-shell {
+            position: relative;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.045);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 220px;
+            max-height: 48vh;
+            display: block;
+            resize: vertical;
+            padding: 18px;
+            border: 0;
+            outline: 0;
+            color: rgba(255, 255, 255, 0.9);
+            background: transparent;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.22);
+        }
+
+        .textarea-shell:focus-within {
+            border-color: rgba(139, 92, 246, 0.34);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.13);
+        }
+
+        .chat-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 15px 18px;
+            border-top: 1px solid rgba(255, 255, 255, 0.055);
+        }
+
+        .tool-group,
+        .chips {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+        }
+
+        .icon-button,
+        .chip,
+        .send-button {
+            border: 0;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .icon-button {
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            color: var(--muted);
+            background: transparent;
+            transition: 160ms ease;
+        }
+
+        .icon-button:hover,
+        .chip:hover {
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .send-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 132px;
+            min-height: 42px;
+            padding: 0 18px;
+            border-radius: 11px;
+            color: #09090b;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(221, 214, 254, 0.92));
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1;
+            box-shadow: 0 14px 45px rgba(139, 92, 246, 0.18);
+            transition: 160ms ease;
+        }
+
+        .send-button:hover {
+            transform: translateY(-1px);
+            background: white;
+            box-shadow: 0 18px 54px rgba(139, 92, 246, 0.26);
+        }
+
+        .chips {
+            justify-content: center;
+            margin-top: 18px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 0 14px 0 11px;
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.58);
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.055);
+            font-size: 13px;
+            transition: 160ms ease;
+        }
+
+        .chip-symbol {
+            display: grid;
+            place-items: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 7px;
+            color: rgba(255, 255, 255, 0.82);
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .feedback-card {
+            position: relative;
+            left: 50%;
+            width: min(96vw, 1180px);
+            margin-top: 24px;
+            margin-left: calc(min(96vw, 1180px) / -2);
+            padding: 22px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid var(--line);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+            backdrop-filter: blur(24px);
+            scroll-margin-top: 24px;
+        }
+
+        .advantages-section {
+            position: relative;
+            left: 50%;
+            width: min(96vw, 1180px);
+            margin-top: 48px;
+            margin-left: calc(min(96vw, 1180px) / -2);
+            padding: 8px 0 10px;
+        }
+
+        .advantages-header {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .section-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            color: rgba(255, 255, 255, 0.62);
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 13px;
+        }
+
+        .section-kicker-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: rgba(139, 92, 246, 0.9);
+            box-shadow: 0 0 16px rgba(139, 92, 246, 0.7);
+        }
+
+        .advantages-header h2 {
+            margin: 0;
+            font-size: clamp(28px, 4vw, 48px);
+            font-weight: 650;
+            letter-spacing: 0;
+            color: rgba(255, 255, 255, 0.94);
+        }
+
+        .advantages-header p {
+            max-width: 520px;
+            margin: 12px 0 0;
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .gallery-controls {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .gallery-arrow {
+            display: grid;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            border: 0;
+            border-radius: 999px;
+            color: rgba(255, 255, 255, 0.78);
+            background: rgba(255, 255, 255, 0.045);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            cursor: pointer;
+            transition: 160ms ease;
+        }
+
+        .gallery-arrow:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.09);
+            transform: translateY(-1px);
+        }
+
+        .advantages-gallery {
+            display: grid;
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(290px, 360px);
+            gap: 20px;
+            overflow-x: auto;
+            padding: 6px 2px 18px;
+            scroll-snap-type: x mandatory;
+            scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+        }
+
+        .advantage-card {
+            position: relative;
+            min-height: 430px;
+            overflow: hidden;
+            border-radius: 18px;
+            scroll-snap-align: start;
+            color: white;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 22px 80px rgba(0, 0, 0, 0.32);
+        }
+
+        .advantage-card img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: saturate(0.95) brightness(0.78);
+            transform: scale(1.01);
+            transition: transform 260ms ease;
+        }
+
+        .advantage-card:hover img {
+            transform: scale(1.06);
+        }
+
+        .advantage-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(to bottom, transparent 10%, rgba(0, 0, 0, 0.38) 44%, rgba(0, 0, 0, 0.86) 100%),
+                radial-gradient(circle at 35% 25%, rgba(139, 92, 246, 0.22), transparent 40%);
+        }
+
+        .advantage-content {
+            position: absolute;
+            inset: auto 0 0;
+            z-index: 1;
+            display: flex;
+            min-height: 52%;
+            flex-direction: column;
+            justify-content: end;
+            padding: 26px;
+        }
+
+        .advantage-tag {
+            display: inline-grid;
+            place-items: center;
+            width: 34px;
+            height: 34px;
+            margin-bottom: 16px;
+            border-radius: 11px;
+            color: #08080a;
+            background: rgba(255, 255, 255, 0.9);
+            font-weight: 850;
+        }
+
+        .advantage-content h3 {
+            margin: 0 0 10px;
+            font-size: 22px;
+            line-height: 1.15;
+        }
+
+        .advantage-content p {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.72);
+            line-height: 1.55;
+            font-size: 14px;
+        }
+
+        .feedback-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 14px;
+            font-size: 21px;
+            font-weight: 700;
+        }
+
+        .feedback {
+            color: rgba(255, 255, 255, 0.82);
+            line-height: 1.68;
+            overflow-wrap: anywhere;
+        }
+
+        .feedback h1,
+        .feedback h2,
+        .feedback h3 {
+            color: rgba(255, 255, 255, 0.96);
+        }
+
+        .feedback code {
+            color: #ddd6fe;
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.18);
+            border-radius: 6px;
+            padding: 2px 5px;
+        }
+
+        .feedback pre {
+            overflow-x: auto;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.28);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .feedback pre code {
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+
+        footer {
+            margin-top: 34px;
+            color: rgba(255, 255, 255, 0.34);
+            font-size: 13px;
+            text-align: center;
+        }
+
+        @keyframes shape-in {
+            from {
+                opacity: 0;
+                transform: translateY(-150px) rotate(calc(var(--shape-rotate) - 15deg));
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) rotate(var(--shape-rotate));
+            }
+        }
+
+        @keyframes shape-float {
+            0%, 100% {
+                translate: 0 0;
+            }
+            50% {
+                translate: 0 15px;
+            }
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 680px) {
+            .landing-hero {
+                padding: 48px 18px;
+            }
+
+            .shape-one {
+                left: -62%;
+                top: 18%;
+            }
+
+            .shape-two {
+                right: -56%;
+                top: 72%;
+            }
+
+            .shape-three {
+                left: -18%;
+            }
+
+            .hero-badge {
+                margin-bottom: 30px;
+            }
+
+            .page-shell {
+                justify-content: flex-start;
+                padding-top: 32px;
+            }
+
+            .chat-toolbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .send-button {
+                width: 100%;
+            }
+
+            .feedback-card {
+                left: auto;
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .advantages-section {
+                left: auto;
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .advantages-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .gallery-controls {
+                display: none;
+            }
+
+            .advantages-gallery {
+                grid-auto-columns: minmax(260px, 86vw);
+            }
+
+            textarea {
+                min-height: 240px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <section class="landing-hero" aria-label="Project introduction">
+        <div class="shape-field" aria-hidden="true">
+            <span class="elegant-shape shape-one"></span>
+            <span class="elegant-shape shape-two"></span>
+            <span class="elegant-shape shape-three"></span>
+            <span class="elegant-shape shape-four"></span>
+            <span class="elegant-shape shape-five"></span>
+        </div>
+
+        <div class="landing-content">
+            <h1 class="landing-title">
+                <span class="title-top">Learn Python</span>
+                <span class="title-bottom">With AI</span>
+            </h1>
+
+            <p class="landing-copy">
+                Get beginner-friendly feedback on bugs, readability, logic, and cleaner ways to write your programs.
+            </p>
+
+            <div class="hero-actions">
+                <a class="hero-scroll-button" href="#chat">
+                    <span>Start Reviewing</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <main class="page-shell lab-bg" id="chat">
+        <section class="main" aria-label="AI Python code reviewer">
+            <div class="brand">
+                <div class="brand-pill">
+                    <span class="brand-mark">AI</span>
+                    <span>AI-Assisted Python Code Review</span>
+                </div>
+            </div>
+
+            <section class="advantages-section" aria-label="Advantages of learning with AI">
+                <div class="advantages-header">
+                    <div>
+                        <div class="section-kicker">
+                            <span class="section-kicker-dot" aria-hidden="true"></span>
+                            <span>Why learn this way</span>
+                        </div>
+                        <h2>Advantages of Learning with AI</h2>
+
+                    </div>
+                    <div class="gallery-controls" aria-hidden="true">
+                        <button class="gallery-arrow" type="button" data-gallery-prev>&lt;</button>
+                        <button class="gallery-arrow" type="button" data-gallery-next>&gt;</button>
+                    </div>
+                </div>
+
+                <div class="advantages-gallery" data-gallery>
+                    <article class="advantage-card">
+                        <img
+                            src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1080&q=80"
+                            alt="Student learning on a laptop"
+                        >
+                        <div class="advantage-content">
+                            <span class="advantage-tag">1</span>
+                            <h3>Instant Feedback</h3>
+                            <p>See what is wrong right away, so errors become lessons instead of roadblocks.</p>
+                        </div>
+                    </article>
+
+                    <article class="advantage-card">
+                        <img
+                            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1080&q=80"
+                            alt="Students collaborating around a computer"
+                        >
+                        <div class="advantage-content">
+                            <span class="advantage-tag">2</span>
+                            <h3>Beginner Explanations</h3>
+                            <p>Turn confusing code into plain-language steps that are easier to remember.</p>
+                        </div>
+                    </article>
+
+                    <article class="advantage-card">
+                        <img
+                            src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1080&q=80"
+                            alt="Code editor on a laptop"
+                        >
+                        <div class="advantage-content">
+                            <span class="advantage-tag">3</span>
+                            <h3>Cleaner Code Habits</h3>
+                            <p>Learn naming, structure, readability, and debugging habits while you build.</p>
+                        </div>
+                    </article>
+
+                    <article class="advantage-card">
+                        <img
+                            src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1080&q=80"
+                            alt="Team working with technology"
+                        >
+                        <div class="advantage-content">
+                            <span class="advantage-tag">4</span>
+                            <h3>Practice Anytime</h3>
+                            <p>Ask questions whenever you get stuck and keep momentum outside class time.</p>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <header class="hero">
+                <h1>How can I help today?</h1>
+                <div class="hero-line"></div>
+                <p>Paste Python code for beginner-friendly feedback on bugs, logic, and readability.</p>
+            </header>
+
+            <form class="chat-card" method="POST" action="#feedback">
+                <div class="editor-wrap">
+                    <div class="editor-label">
+                        <span>Submit Python code</span>
+                        <span class="status-dot" aria-hidden="true"></span>
+                    </div>
+                    <div class="textarea-shell">
+                        <textarea
+                            name="code"
+                            placeholder="Ask for a review by pasting your Python code here..."
+                            spellcheck="false"
+                        >{{ user_input }}</textarea>
+                    </div>
+                </div>
+
+                <div class="chat-toolbar">
+                    <div class="tool-group" aria-label="Review modes">
+                        <button class="icon-button" type="button" title="Python mode" aria-label="Python mode">Py</button>
+                    </div>
+                    <button class="send-button" type="submit">
+                        <span>Analyze Code</span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="chips" aria-label="Suggested review prompts">
+                <button class="chip" type="button" data-prompt="# Check for bugs&#10;">
+                    <span class="chip-symbol" aria-hidden="true">!</span>
+                    <span>Check bugs</span>
+                </button>
+                <button class="chip" type="button" data-prompt="# Improve readability&#10;">
+                    <span class="chip-symbol" aria-hidden="true">*</span>
+                    <span>Improve</span>
+                </button>
+                <button class="chip" type="button" data-prompt="# Explain this code&#10;">
+                    <span class="chip-symbol" aria-hidden="true">?</span>
+                    <span>Explain</span>
+                </button>
+                <button class="chip" type="button" data-prompt="# Rewrite for beginners&#10;">
+                    <span class="chip-symbol" aria-hidden="true">{}</span>
+                    <span>Rewrite</span>
+                </button>
+            </div>
+
+            {% if response %}
+            <section class="feedback-card" id="feedback" aria-label="AI feedback">
+                <h2 class="feedback-title">
+                    <span class="brand-mark">AI</span>
+                    <span>AI Feedback</span>
+                </h2>
+                <div class="feedback">
+                    {{ response | safe }}
+                </div>
+            </section>
+            {% endif %}
+        </section>
+
+    </main>
+
+    <script>
+        const textarea = document.querySelector("textarea[name='code']");
+        const chips = document.querySelectorAll("[data-prompt]");
+        const gallery = document.querySelector("[data-gallery]");
+        const galleryPrev = document.querySelector("[data-gallery-prev]");
+        const galleryNext = document.querySelector("[data-gallery-next]");
+        const feedback = document.querySelector("#feedback");
+
+        function resizeTextarea() {
+            if (!textarea) return;
+            textarea.style.height = "auto";
+            textarea.style.height = Math.min(textarea.scrollHeight, window.innerHeight * 0.48) + "px";
+        }
+
+        if (textarea) {
+            textarea.addEventListener("input", resizeTextarea);
+            window.addEventListener("resize", resizeTextarea);
+            resizeTextarea();
+        }
+
+        chips.forEach((chip) => {
+            chip.addEventListener("click", () => {
+                if (!textarea) return;
+                textarea.value = chip.dataset.prompt + textarea.value;
+                textarea.focus();
+                resizeTextarea();
+            });
+        });
+
+        function scrollGallery(direction) {
+            if (!gallery) return;
+            gallery.scrollBy({
+                left: direction * Math.min(380, gallery.clientWidth * 0.8),
+                behavior: "smooth",
+            });
+        }
+
+        if (galleryPrev) {
+            galleryPrev.addEventListener("click", () => scrollGallery(-1));
+        }
+
+        if (galleryNext) {
+            galleryNext.addEventListener("click", () => scrollGallery(1));
+        }
+
+        if (feedback && window.location.hash === "#feedback") {
+            feedback.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    </script>
+</body>
+</html>
