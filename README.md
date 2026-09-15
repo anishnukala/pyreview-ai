@@ -59,6 +59,7 @@ Running the Application
 
 Project Structure
 -----------------
+```text
 AI_FINAL_PROJECT/
 ├── app.py                # Flask backend
 ├── data/
@@ -74,6 +75,7 @@ AI_FINAL_PROJECT/
 ├── .gitignore            # Files excluded from Git
 ├── requirements.txt      # Python dependencies
 └── README.md
+```
 
 Notes
 -----
